@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "weather-cli"
+version = "0.1.0"
+description = ""
+authors = ["Daniil <barindan14@gmail.com>"]
+readme = "README.md"
+packages = [{include = "weather_cli"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+mypy = "^1.11.1"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
