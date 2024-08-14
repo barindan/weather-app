@@ -1,4 +1,4 @@
-_this is practical example from the [book] (https://to.digital/typed-python)_
+_this is practical example from the [book](https://to.digital/typed-python)_
 
 We will use hasbang at the entry point (`weather` file) to run our app without setting up an interpreter
 
