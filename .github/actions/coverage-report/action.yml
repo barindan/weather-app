@@ -1,0 +1,24 @@
+name: coverage-report
+description: Uploads a lcov code coverage report to the PR
+author: Scope Creep
+
+inputs:
+  lcov-file:
+    description: "lcov coverage file that will be used to create a PR comment"
+    required: false
+    default: "coverage.lcov"
+  delete-old-comments:
+    description: "Delete old comments when posting new coverage report comment, defaults to true"
+    required: false
+    default: true
+
+runs:
+  using: composite
+  steps:
+    - name: Upload coverage report
+      uses: romeovs/lcov-reporter-action@v0.3.1
+      if: github.event_name == 'pull_request'
+      with:
+        github-token: ${{ github.token }}
+        lcov-file: ${{ inputs.lcov-file }}
+        delete-old-comments: ${{ inputs.delete-old-comments }}
