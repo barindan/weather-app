@@ -68,6 +68,24 @@ jobs:
         run: |
           echo "${{ needs.Coverage-Report.outputs.coverage-report }}" | base64 -d > coverage.lcov
 
+      # - name: Extract coverage percentage
+      #   id: coverage
+      #   run: |
+      #     coverage=$(cat ./coverage.xml | grep -oP -m 1 'line-rate="\K[0-9.]+')
+      #     rounded_coverage=$(printf "%.2f" $(echo "$coverage * 100" | bc))
+      #     echo "Coverage after merging will be: **$rounded_coverage%**" > total_coverage.txt
+      #     echo "\nPrevious coverage was: ${{ vars.TOgTAL_COVERAGE }}" >> total_coverage.txt
+      #     # gh variable set TOTAL_COVERAGE --body $rounded_coverage
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Print coverage percentage
+      #   uses: mshick/add-pr-comment@v2
+      #   id: add-pr-comment
+      #   with:
+      #     message-path: |
+      #       ./total_coverage.txt
+
       - name: Upload coverage report
         uses: romeovs/lcov-reporter-action@v0.3.1
         if: github.event_name == 'pull_request'
