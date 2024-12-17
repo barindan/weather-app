@@ -28,7 +28,7 @@ jobs:
         id: coverage-report
         run: |
           poetry run pytest --cov --cov-report=lcov:coverage.lcov
-          echo "report_lcov=$(base64 -w 0 coverage.lcov)" >> $GITHUB_OUTPUT
+          echo "report_lcov=$(base64 -w 0 coverage.lcov)" >> $GITHUB_OUTPUTg
       - name: GitHub auth
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token 
