@@ -64,8 +64,8 @@ class TestWeatherApiService(unittest.TestCase):
             "cod": 200
         }
 
-    # def test_parse_weather_type(self):
-    #     self.assertEqual(_parse_weather_type(self.openweather_response), self.openweather_response["weather"][0]["main"])
+    def test_parse_weather_type(self):
+        self.assertEqual(_parse_weather_type(self.openweather_response), self.openweather_response["weather"][0]["main"])
 
     def test_parse_city(self):
         self.assertEqual(_parse_city(self.openweather_response), self.openweather_response["name"])

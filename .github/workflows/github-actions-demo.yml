@@ -1,12 +1,16 @@
 name: GitHub Actions Demo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push, pull_request]
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
 
 jobs:
   Coverage-Report:
     runs-on: ubuntu-latest
-    outputs:
-      coverage-report: ${{ steps.coverage-report.outputs.report_lcov }}
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
@@ -24,49 +28,69 @@ jobs:
       - name: Create .env file
         run: |
           echo "OPENWEATHER_API_KEY=some_key" >> .env
+      - name: Rename coverage report for main branch
+        run: |
+          mv coverage.lcov coverage-base.lcov
       - name: Run tests with coverage
-        id: coverage-report
         run: |
           poetry run pytest --cov --cov-report=lcov:coverage.lcov
-          echo "report_lcov=$(base64 -w 0 coverage.lcov)" >> $GITHUB_OUTPUTg
+      - name: Upload coverage report
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ github.token }}
+          lcov-file: coverage.lcov
+          lcov-base: coverage-base.lcov
+          delete-old-comments: true
+          filter-changed-files: true
       - name: GitHub auth
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token 
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Configure Git user
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+      - name: Checkout PR branch
+        run: |
+          git fetch
+          git checkout $(gh pr view ${{ github.event.pull_request.number }} --json headRefName -q '.headRefName')
       - name: Commit new coverage report
         if: github.event_name == 'pull_request'
         run: |
           git add coverage.lcov
-          git commit -m "Update coverage report"
-      - name: Push new coverage report
-        run: |
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Update coverage report"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            echo "No changes in coverage.lcov to commit."
+          fi
+  # Coverage-Report-Main:
+  #   runs-on: ubuntu-latest
+  #   needs: [Coverage-Report]
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: main
+  #     - name: Set up Python for branch
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.11'
+  #     - name: Install dependencies for branch
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install poetry
+  #         poetry install
+  #     - name: Create .env file
+  #       run: |
+  #         echo "OPENWEATHER_API_KEY=some_key" >> .env
+  #     - name: Run tests with coverage
+  #       run: poetry run pytest --cov --cov-report=lcov:coverage-base.lcov
 
-  Coverage-Report-Main:
-    runs-on: ubuntu-latest
-    needs: [Coverage-Report]
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-        with:
-          ref: main
-      - name: Set up Python for branch
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies for branch
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
-      - name: Create .env file
-        run: |
-          echo "OPENWEATHER_API_KEY=some_key" >> .env
-      - name: Run tests with coverage
-        run: poetry run pytest --cov --cov-report=lcov:coverage-base.lcov
-
-      - name: Get coverage report
-        run: |
-          echo "${{ needs.Coverage-Report.outputs.coverage-report }}" | base64 -d > coverage.lcov
+  #     - name: Get coverage report
+  #       run: |
+  #         echo "${{ needs.Coverage-Report.outputs.coverage-report }}" | base64 -d > coverage.lcov
+      
 
       # - name: Extract coverage percentage
       #   id: coverage
@@ -85,16 +109,6 @@ jobs:
       #   with:
       #     message-path: |
       #       ./total_coverage.txt
-
-      - name: Upload coverage report
-        uses: romeovs/lcov-reporter-action@v0.3.1
-        if: github.event_name == 'pull_request'
-        with:
-          github-token: ${{ github.token }}
-          lcov-file: coverage.lcov
-          lcov-base: coverage-base.lcov
-          delete-old-comments: true
-          filter-changed-files: true
 
       # - name: Extract coverage percentage
       #   id: coverage
