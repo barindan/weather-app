@@ -7,6 +7,10 @@ inputs:
     description: "lcov coverage file that will be used to create a PR comment"
     required: false
     default: "coverage.lcov"
+  lcov-base:
+    description: "lcov base coverage file that will be used to create a PR comment"
+    required: false
+    default: "coverage-baseg.lcov"
   delete-old-comments:
     description: "Delete old comments when posting new coverage report comment, defaults to true"
     required: false
@@ -21,4 +25,6 @@ runs:
       with:
         github-token: ${{ github.token }}
         lcov-file: ${{ inputs.lcov-file }}
+        lcov-base: ${{ inputs.lcov-base }}
         delete-old-comments: ${{ inputs.delete-old-comments }}
+        filter-changed-files: true

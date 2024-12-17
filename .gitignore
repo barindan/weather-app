@@ -163,5 +163,3 @@ cython_debug/
 
 history.*
 !history.py
-
-coverage.*
