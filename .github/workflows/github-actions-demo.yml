@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: main-coverage.lcov
-          path: coverage-base.lcov
+          path: coverage.lcov
       # - name: Run tests with coverage
       #   run: |
       #     poetry run pytest --cov --cov-report=lcov:coverage.lcov
