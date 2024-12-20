@@ -1,0 +1,54 @@
+name: Commit Files Inside Action
+run-name: ${{ github.actor }} is testing out committing files inside an action
+on:
+  push:
+    branches:
+      - test/commit-files-inside-action
+
+jobs:
+  Commit-Files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python for branch
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies for branch
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+      - name: Create .env file
+        run: |
+          echo "OPENWEATHER_API_KEY=some_key" >> .env
+      - name: Create a test file
+        run: |
+          echo "This is a test file $(date +'%Y-%m-%d')" > test.txt
+      - name: Commit the test file
+        run: |
+          git add test.txt
+          git commit -m "Add test.txt"
+          git push origin HEAD:${{ github.head_ref }}
+      - name: GitHub auth
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Configure Git user
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+      - name: Checkout PR branch
+        run: |
+          git fetch
+          git checkout $(gh pr view ${{ github.event.pull_request.number }} --json headRefName -q '.headRefName')
+      - name: Commit new coverage report
+        if: github.event_name == 'pull_request'
+        run: |
+          git add test.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "Commit test.txt"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            echo "No changes in test.txt to commit."
+          fi

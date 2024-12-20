@@ -1,0 +1,29 @@
+name: Merge Master
+run-name: ${{ github.ref }} is merging into master
+on: 
+  push:
+    branches:
+      - master
+      - main
+
+
+jobs:
+  Update-Report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download report for current branch
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.ref }}-coverage.lcov
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: Delete report artifact from GitHub
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: ${{ github.ref }}-coverage.lcov
+      - name: Upload new main report
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-coverage.lcov
+          path: ${{ github.ref }}-coverage.lcov
+          overwrite: true
