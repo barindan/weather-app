@@ -16,38 +16,41 @@ jobs:
       - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Set up Python for branch
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies for branch
+      # - name: Set up Python for branch
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.11'
+      # - name: Install dependencies for branch
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install poetry
+      #     poetry install
+      - name: Get list of artifacts
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
-      - name: Create .env file
-        run: |
-          echo "OPENWEATHER_API_KEY=some_key" >> .env
-      - name: Run tests with coverage
-        run: |
-          poetry run pytest --cov --cov-report=lcov:coverage.lcov
-      - name: Download main branch coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: main-coverage.lcov
-      - name: Add comment with coverage report
-        uses: romeovs/lcov-reporter-action@v0.3.1
-        if: github.event_name == 'pull_request'
-        with:
-          github-token: ${{ github.token }}
-          lcov-file: coverage.lcov
-          lcov-base: main-coverage.lcov
-          delete-old-comments: true
-          filter-changed-files: true
-      - name: Upload PR's coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.head_ref }}-coverage.lcov
-          path: coverage.lcov
-          overwrite: true
+          gh api repos/${{ github.repository_owner }}/${{ github.repository }}/actions/artifacts
+      # - name: Create .env file
+      #   run: |
+      #     echo "OPENWEATHER_API_KEY=some_key" >> .env
+      # - name: Run tests with coverage
+      #   run: |
+      #     poetry run pytest --cov --cov-report=lcov:coverage.lcov
+      # - name: Download main branch coverage report
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: main-coverage.lcov
+      # - name: Add comment with coverage report
+      #   uses: romeovs/lcov-reporter-action@v0.3.1
+      #   if: github.event_name == 'pull_request'
+      #   with:
+      #     github-token: ${{ github.token }}
+      #     lcov-file: coverage.lcov
+      #     lcov-base: main-coverage.lcov
+      #     delete-old-comments: true
+      #     filter-changed-files: true
+      # - name: Upload PR's coverage report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ github.head_ref }}-coverage.lcov
+      #     path: coverage.lcov
+      #     overwrite: true
 

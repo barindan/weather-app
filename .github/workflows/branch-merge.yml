@@ -1,6 +1,6 @@
 name: Merge Master
 run-name: ${{ github.ref }} is merging into master
-on: 
+on:
   push:
     branches:
       - master
