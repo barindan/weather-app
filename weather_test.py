@@ -1,7 +1,14 @@
 import unittest
+from unittest.mock import patch, MagicMock
+from urllib.error import URLError
 from datetime import datetime
 from weather_api_service import (
-    _parse_weather_type, _parse_city, _parse_temperature, _parse_sun_time
+    _parse_weather_type,
+    _parse_city,
+    _parse_temperature,
+    _parse_sun_time,
+    _get_openweather_response,
+    ApiServiceError
 )
 
 class TestWeatherApiService(unittest.TestCase):
@@ -75,3 +82,25 @@ class TestWeatherApiService(unittest.TestCase):
             _parse_sun_time(self.openweather_response, "sunset"),
             datetime.fromtimestamp(self.openweather_response["sys"]["sunset"])
         )
+
+    @patch('weather_api_service.urllib.request.urlopen')
+    def test_get_openweather_response_success(self, mock_urlopen):
+        # Mock the response of urlopen
+        mock_response = MagicMock()
+        mock_response.read.return_value = '{"mock": "data"}'
+        mock_urlopen.return_value = mock_response
+
+        # Call the function
+        response = _get_openweather_response(latitude=0.0, longitude=0.0)
+
+        # Assert the response is as expected
+        self.assertEqual(response, '{"mock": "data"}')
+
+    @patch('weather_api_service.urllib.request.urlopen')
+    def test_get_openweather_response_failure(self, mock_urlopen):
+        # Simulate a URLError
+        mock_urlopen.side_effect = URLError('Mocked error')
+
+        # Assert that ApiServiceError is raised
+        with self.assertRaises(ApiServiceError):
+            _get_openweather_response(latitude=0.0, longitude=0.0)
