@@ -1,9 +1,12 @@
 name: Merge Master
-run-name: ${{ github.ref }} is merging into master
+run-name: Merging into master
 on:
   pull_request:
     types:
       - closed
+env:
+  # To use GitHub CLI in GitHub Actions workflow, we need to set the GH_TOKEN environment variable
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   Update-Report:
