@@ -4,7 +4,7 @@ from pathlib import Path
 from exceptions import ApiServiceError, CantGetCoordinates
 from coordinates import get_gps_coordinates
 from weather_api_service import get_weather
-from weather_formatter import format_weather
+from weather_formatter import format_weather, format_temperature
 from history import PlainFileWeatherStorage, save_weather, JSONFileWeatherStorage
 
 
@@ -21,6 +21,6 @@ def main():
         exit(1)
     save_weather(weather, JSONFileWeatherStorage(Path.cwd() / "history.json"))
     print(format_weather(weather))
-
+    print(format_temperature(weather.temperature))
 if __name__ == "__main__":
     main()
