@@ -10,7 +10,7 @@ from weather_api_service import (
     _get_openweather_response,
     ApiServiceError
 )
-
+from temperature_converter import from_celsius_to_fahrenheit, from_celsius_to_kelvin
 class TestWeatherApiService(unittest.TestCase):
 
     def setUp(self):
@@ -104,3 +104,15 @@ class TestWeatherApiService(unittest.TestCase):
         # Assert that ApiServiceError is raised
         with self.assertRaises(ApiServiceError):
             _get_openweather_response(latitude=0.0, longitude=0.0)
+
+
+class TestTemperatureConverter(unittest.TestCase):
+    def test_from_celsius_to_fahrenheit(self):
+        self.assertEqual(from_celsius_to_fahrenheit(0), 32)
+        self.assertEqual(from_celsius_to_fahrenheit(100), 212)
+        self.assertEqual(from_celsius_to_fahrenheit(-40), -40)
+
+    def test_from_celsius_to_kelvin(self):
+        self.assertEqual(from_celsius_to_kelvin(0), 273)
+        self.assertEqual(from_celsius_to_kelvin(100), 373)
+        self.assertEqual(from_celsius_to_kelvin(-40), 233)

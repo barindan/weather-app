@@ -40,7 +40,7 @@ jobs:
           echo "filename=$(echo "${{ github.head_ref }}-coverage.lcov" | tr '/:<>|*?\\' '-')" >> $GITHUB_OUTPUT
       - name: Run tests with coverage
         run: |
-          poetry run pytest --cov --cov-report=lcov:${{ steps.set-pr-coverage-filename.outputs.filename }}
+          poetry run pytest --cov=../weather-app --cov-report=lcov:${{ steps.set-pr-coverage-filename.outputs.filename }}
       - name: Upload PR's coverage report
         uses: actions/upload-artifact@v4
         id: upload-pr-coverage-artifact
