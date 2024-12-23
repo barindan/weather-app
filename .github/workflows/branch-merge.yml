@@ -1,0 +1,57 @@
+name: Merge Master
+run-name: ${{ github.ref }} is merging into master
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  Update-Report:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set PR's coverage file name
+        id: set-pr-coverage-report-name
+        run: |
+          echo "filename=$(echo "${{ github.head_ref }}-coverage.lcov" | tr '/:<>|*?\\' '-')" >> $GITHUB_OUTPUT
+      - name: Get PR's coverage report artifact ids and run id
+        id: pr-coverage-artifact
+        run: |
+          response=$(gh api repos/${{ github.repository }}/actions/artifacts?name=${{ steps.set-pr-coverage-report-name.outputs.filename }})
+          artifact_ids=$(echo "$response" | jq -r '.artifacts[].id' | tr '\n' ',')
+          echo "artifact-ids=${artifact_ids%,}" >> $GITHUB_OUTPUT
+
+          # IF THERE IS NO ARTIFACT (AND CORRESPONDING RUN ID)?
+
+          echo "run-id=$(echo "$response" | jq -r '.artifacts | sort_by(.created_at) | last | .workflow_run.id')" >> $GITHUB_OUTPUT
+      - name: Download PR's report
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.set-pr-coverage-report-name.outputs.filename }}
+          run-id: ${{ steps.pr-coverage-artifact.outputs.run-id }}
+          github-token: ${{ github.token }}
+      - name: Rename report file
+        run: |
+          mv ${{ steps.set-pr-coverage-report-name.outputs.filename }} main-coverage.lcov
+      - name: Upload new main report
+        uses: actions/upload-artifact@v4
+        id: upload-main-coverage-artifact
+        with:
+          name: main-coverage.lcov
+          path: main-coverage.lcov
+      - name: Delete all PR's report artifacts
+        run: |
+          IFS=',' read -ra ids <<< "${{ steps.pr-coverage-artifact.outputs.artifact-ids }}"
+          for id in "${ids[@]}"; do
+            gh api --method DELETE repos/${{ github.repository }}/actions/artifacts/$id
+          done
+      - name: Delete outdated main reports
+        if: ${{ steps.upload-main-coverage-artifact.outputs.artifact-id != '' }}
+        run: |
+          response=$(gh api repos/${{ github.repository }}/actions/artifacts?name=main-coverage.lcov)
+          echo "$response" | jq -c '.artifacts[]' | while read artifact; do
+            artifact_id=$(echo "$artifact" | jq -r '.id')
+            if [ "$artifact_id" != "${{ steps.upload-main-coverage-artifact.outputs.artifact-id }}" ]; then
+              gh api --method DELETE repos/${{ github.repository }}/actions/artifacts/$artifact_id
+            fi
+          done
