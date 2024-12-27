@@ -1,16 +1,17 @@
 name: Merge Master
 run-name: Merging into master
-on:
-  pull_request:
-    types:
-      - closed
+# on:
+#   pull_request:
+#     types:
+#       - closed
+on: workflow_call
 env:
   # To use GitHub CLI in GitHub Actions workflow, we need to set the GH_TOKEN environment variable
   GH_TOKEN: ${{ github.token }}
 
 jobs:
   Update-Report:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Set PR's coverage file name

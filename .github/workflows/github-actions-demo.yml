@@ -85,3 +85,24 @@ jobs:
               gh api --method DELETE repos/${{ github.repository }}/actions/artifacts/$artifact_id
             fi
           done
+
+  Upload-Non-Existent-File:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload non-existent file
+        id: upload-non-existent-file
+        uses: actions/upload-artifact@v4
+        with:
+          name: non-existent-file.txt
+          path: non-existent-file.txt
+      - name: Check output
+        run: |
+          echo "Non-existent file uploaded: ${{ steps.upload-non-existent-file.outputs.artifact-id }}"
+      - name: This will not run
+        if: ${{ steps.upload-non-existent-file.outputs.artifact-id != '' }}
+        run: |
+          echo "This will not run"
+
+  Call-Merge-Workflow:
+    needs: Coverage-Report
+    uses: ./.github/workflows/branch-merge.yml
